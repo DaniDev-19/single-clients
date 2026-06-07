@@ -13,6 +13,9 @@ interface Client {
   name: string;
   email: string;
   status: string;
+  phone?: string;
+  address?: string;
+  rif?: string;
 }
 
 function Clients() {
@@ -20,13 +23,13 @@ function Clients() {
   const { showLoading, hideLoading } = useLoading();
 
   const [clients, setClients] = useState<Client[]>([
-    { id: 1, name: 'John Doe', email: 'john@example.com', status: 'active' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', status: 'inactive' },
-    { id: 3, name: 'Carlos Ruiz', email: 'carlos@example.com', status: 'active' },
-    { id: 4, name: 'Ana García', email: 'ana@example.com', status: 'pending' },
-    { id: 5, name: 'Laura Pérez', email: 'laura@example.com', status: 'active' },
-    { id: 6, name: 'Miguel Torres', email: 'miguel@example.com', status: 'inactive' },
-    { id: 7, name: 'Valeria Flores', email: 'valeria@example.com', status: 'active' },
+    { id: 1, name: 'John Doe', email: 'john@example.com', status: 'active', phone: '+58 414-9988776', address: 'Calle Principal Edif 3, Caracas', rif: 'V-12345678-9' },
+    { id: 2, name: 'Jane Smith', email: 'jane@example.com', status: 'inactive', phone: '+58 424-1122334', address: 'Av. Libertador C.C. El Recreo, Caracas', rif: 'V-87654321-0' },
+    { id: 3, name: 'Carlos Ruiz', email: 'carlos@example.com', status: 'active', phone: '+58 412-5556677', address: 'Las Mercedes Calle París, Caracas', rif: 'J-99887766-5' },
+    { id: 4, name: 'Ana García', email: 'ana@example.com', status: 'pending', phone: '+58 416-8877665', address: 'Chacao Torre Credicard, Caracas', rif: 'E-88334422-1' },
+    { id: 5, name: 'Laura Pérez', email: 'laura@example.com', status: 'active', phone: '+58 412-7778899', address: 'Altamira Av. Luis Roche, Caracas', rif: 'V-19283746-5' },
+    { id: 6, name: 'Miguel Torres', email: 'miguel@example.com', status: 'inactive', phone: '+58 424-3334455', address: 'El Hatillo Pueblo, Caracas', rif: 'V-11223344-2' },
+    { id: 7, name: 'Valeria Flores', email: 'valeria@example.com', status: 'active', phone: '+58 414-2223344', address: 'La Castellana Edif VIP, Caracas', rif: 'V-99881122-3' },
   ]);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,17 +38,24 @@ function Clients() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const [nameInput, setNameInput] = useState('');
   const [emailInput, setEmailInput] = useState('');
   const [statusInput, setStatusInput] = useState('active');
+  const [phoneInput, setPhoneInput] = useState('');
+  const [addressInput, setAddressInput] = useState('');
+  const [rifInput, setRifInput] = useState('');
 
   const handleOpenAdd = () => {
     setNameInput('');
     setEmailInput('');
     setStatusInput('active');
+    setPhoneInput('');
+    setAddressInput('');
+    setRifInput('');
     setIsAddOpen(true);
   };
 
@@ -64,6 +74,9 @@ function Clients() {
         name: nameInput,
         email: emailInput,
         status: statusInput,
+        phone: phoneInput || undefined,
+        address: addressInput || undefined,
+        rif: rifInput || undefined,
       };
       setClients((prev) => [newClient, ...prev]);
       hideLoading();
@@ -76,6 +89,9 @@ function Clients() {
     setNameInput(client.name);
     setEmailInput(client.email);
     setStatusInput(client.status);
+    setPhoneInput(client.phone || '');
+    setAddressInput(client.address || '');
+    setRifInput(client.rif || '');
     setIsEditOpen(true);
   };
 
@@ -93,7 +109,7 @@ function Clients() {
       setClients((prev) =>
         prev.map((c) =>
           c.id === selectedClient.id
-            ? { ...c, name: nameInput, email: emailInput, status: statusInput }
+            ? { ...c, name: nameInput, email: emailInput, status: statusInput, phone: phoneInput, address: addressInput, rif: rifInput }
             : c
         )
       );
@@ -151,6 +167,21 @@ function Clients() {
     status: getStatusBadge(client.status),
     acciones: (
       <div className="flex items-center gap-1.5 justify-start">
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedClient(client);
+            setIsDetailOpen(true);
+          }}
+          className="p-1 rounded border border-border-dark bg-bg-card text-gray-400 hover:text-white hover:border-purple-500/50 transition cursor-pointer"
+          title="Ver Ficha Cliente (ID)"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        </button>
+
         <Buttons
           variant="secondary"
           size="sm"
@@ -239,19 +270,39 @@ function Clients() {
             required
           />
           <Inputs
+            label="RIF / Cédula Identificación"
+            value={rifInput}
+            onChange={setRifInput}
+            placeholder="Ej. V-12345678-9"
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <Inputs
+              label="Teléfono"
+              value={phoneInput}
+              onChange={setPhoneInput}
+              placeholder="Ej. +58 412-1112233"
+            />
+            <Selects
+              label="Estado Inicial"
+              value={statusInput}
+              onChange={setStatusInput}
+              options={['active', 'inactive', 'pending']}
+              placeholder="Seleccione el estado"
+            />
+          </div>
+          <Inputs
+            label="Dirección de Domicilio"
+            value={addressInput}
+            onChange={setAddressInput}
+            placeholder="Ej. Av. Francisco de Miranda, Caracas"
+          />
+          <Inputs
             label="Correo Electrónico"
             type="email"
             value={emailInput}
             onChange={setEmailInput}
             placeholder="Ej. juan@example.com"
             required
-          />
-          <Selects
-            label="Estado Inicial"
-            value={statusInput}
-            onChange={setStatusInput}
-            options={['active', 'inactive', 'pending']}
-            placeholder="Seleccione el estado"
           />
         </div>
       </Modal>
@@ -272,19 +323,39 @@ function Clients() {
             required
           />
           <Inputs
+            label="RIF / Cédula Identificación"
+            value={rifInput}
+            onChange={setRifInput}
+            placeholder="Ej. V-12345678-9"
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <Inputs
+              label="Teléfono"
+              value={phoneInput}
+              onChange={setPhoneInput}
+              placeholder="Ej. +58 412-1112233"
+            />
+            <Selects
+              label="Estado"
+              value={statusInput}
+              onChange={setStatusInput}
+              options={['active', 'inactive', 'pending']}
+              placeholder="Seleccione el estado"
+            />
+          </div>
+          <Inputs
+            label="Dirección de Domicilio"
+            value={addressInput}
+            onChange={setAddressInput}
+            placeholder="Ej. Av. Francisco de Miranda, Caracas"
+          />
+          <Inputs
             label="Correo Electrónico"
             type="email"
             value={emailInput}
             onChange={setEmailInput}
             placeholder="Ej. juan@example.com"
             required
-          />
-          <Selects
-            label="Estado"
-            value={statusInput}
-            onChange={setStatusInput}
-            options={['active', 'inactive', 'pending']}
-            placeholder="Seleccione el estado"
           />
         </div>
       </Modal>
@@ -303,6 +374,35 @@ function Clients() {
         <p className="text-sm">
           ¿Está seguro que desea eliminar a <strong className="text-white">{selectedClient?.name}</strong>? Esta acción no se puede deshacer y se borrará permanentemente de la base de datos.
         </p>
+      </Modal>
+
+      <Modal
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        title="Ficha Detallada del Cliente (ID)"
+        showActions={true}
+        actions={[{ label: 'Cerrar', onClick: () => setIsDetailOpen(false), variant: 'secondary' }]}
+      >
+        {selectedClient && (
+          <div className="space-y-4 text-xs">
+            <div className="flex justify-between items-center border-b border-border-dark pb-3">
+              <div>
+                <h4 className="text-sm font-bold text-white">{selectedClient.name}</h4>
+                <p className="text-[10px] text-gray-500 mt-0.5">ID Cliente: #{selectedClient.id}</p>
+              </div>
+              {getStatusBadge(selectedClient.status)}
+            </div>
+            <div className="space-y-2.5">
+              <div className="flex justify-between"><span className="text-gray-500 font-medium">RIF / Cédula:</span><span className="text-white font-semibold">{selectedClient.rif || 'N/A'}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 font-medium">Correo Electrónico:</span><span className="text-white font-semibold">{selectedClient.email}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 font-medium">Teléfono:</span><span className="text-white font-semibold">{selectedClient.phone || 'N/A'}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 font-medium">Dirección Fiscal:</span><span className="text-gray-300 font-semibold">{selectedClient.address || 'N/A'}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 font-medium">Fecha Registro:</span><span className="text-white">2026-01-15</span></div>
+              <div className="flex justify-between border-t border-border-dark/60 pt-2"><span className="text-gray-500 font-medium">Límite Crédito:</span><span className="text-emerald-400 font-semibold">$500.00</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 font-medium">Historial Ventas:</span><span className="text-purple-400 font-semibold">12 Facturas</span></div>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

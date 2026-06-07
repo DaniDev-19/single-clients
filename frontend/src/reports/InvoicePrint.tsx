@@ -20,6 +20,7 @@ interface InvoiceData {
   issueDate: string;
   dueDate: string;
   terms: string;
+  rateMode?: 'manual' | 'daily';
   exchangeRate: number;
   formatStyle: 'classic' | 'minimalist' | 'ticket';
   customFooter?: string;
@@ -62,6 +63,8 @@ function InvoicePrint() {
       </div>
     );
   }
+
+  const isManual = data.rateMode === 'manual' || (!data.rateMode && data.exchangeRate > 0);
 
   return (
     <div className="bg-white text-black min-h-screen relative font-sans p-4 sm:p-8">
@@ -121,11 +124,15 @@ function InvoicePrint() {
                 {data.clientPhone && <span className="text-gray-500 block">TLF: {data.clientPhone}</span>}
                 {data.clientAddress && <span className="text-gray-500 block">{data.clientAddress}</span>}
               </div>
-              <div className="text-right flex flex-col justify-between space-y-1">
+              <div className="text-right flex flex-col justify-between space-y-1 font-sans">
                 <div className="flex justify-between"><span className="text-gray-400">Fecha de Emisión:</span><span className="text-gray-800 font-semibold">{data.issueDate}</span></div>
                 <div className="flex justify-between"><span className="text-gray-400">Fecha de Vencimiento:</span><span className="text-gray-800 font-semibold">{data.dueDate}</span></div>
                 <div className="flex justify-between"><span className="text-gray-400">Método de Pago:</span><span className="text-gray-800 font-semibold">{data.terms}</span></div>
-                <div className="flex justify-between border-t border-gray-200 pt-2"><span className="text-gray-400 font-bold">Tasa Oficial (Bs):</span><span className="text-purple-600 font-black">{data.exchangeRate.toFixed(2)} Bs</span></div>
+                {isManual ? (
+                  <div className="flex justify-between border-t border-gray-200 pt-2"><span className="text-gray-400 font-bold">Tasa Oficial (Bs):</span><span className="text-purple-600 font-black">{data.exchangeRate.toFixed(2)} Bs</span></div>
+                ) : (
+                  <div className="flex justify-between border-t border-gray-200 pt-2"><span className="text-gray-400 font-bold">Tasa de Cambio:</span><span className="text-purple-600 font-bold text-[9px]">TASA OFICIAL DEL DÍA</span></div>
+                )}
               </div>
             </div>
 
@@ -135,18 +142,20 @@ function InvoicePrint() {
                   <th className="pb-3">Descripción de Artículos</th>
                   <th className="pb-3 text-right w-16">Cant.</th>
                   <th className="pb-3 text-right w-24">Precio ($)</th>
-                  <th className="pb-3 text-right w-32">Total ($ / Bs)</th>
+                  <th className="pb-3 text-right w-32">{isManual ? 'Total ($ / Bs)' : 'Total ($)'}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 text-gray-700">
+              <tbody className="divide-y divide-gray-200 text-gray-700 font-sans">
                 {data.lines.map((line) => (
                   <tr key={line.id}>
                     <td className="py-3 pr-4 leading-tight">{line.description}</td>
                     <td className="py-3 text-right">{line.quantity}</td>
                     <td className="py-3 text-right">${line.price.toFixed(2)}</td>
-                    <td className="py-3 text-right font-bold text-gray-800">
+                    <td className="py-3 text-right font-bold text-gray-850">
                       <div>${(line.price * line.quantity).toFixed(2)}</div>
-                      <div className="text-[9px] text-gray-400 font-normal">{(line.price * line.quantity * data.exchangeRate).toFixed(2)} Bs</div>
+                      {isManual && (
+                        <div className="text-[9px] text-gray-400 font-normal">{(line.price * line.quantity * data.exchangeRate).toFixed(2)} Bs</div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -157,25 +166,31 @@ function InvoicePrint() {
               <div className="flex justify-between w-full max-w-[280px] text-gray-500">
                 <span>Subtotal:</span>
                 <div className="text-right">
-                  <span className="block">${data.subtotalUsd.toFixed(2)}</span>
-                  <span className="block text-[10px]">{data.subtotalBs.toFixed(2)} Bs</span>
+                  <span className="block text-gray-800 font-semibold">${data.subtotalUsd.toFixed(2)}</span>
+                  {isManual && <span className="block text-[10px]">{data.subtotalBs.toFixed(2)} Bs</span>}
                 </div>
               </div>
               <div className="flex justify-between w-full max-w-[280px] text-gray-500">
                 <span>Impuesto IVA (16%):</span>
                 <div className="text-right">
-                  <span className="block">${data.taxUsd.toFixed(2)}</span>
-                  <span className="block text-[10px]">{data.taxBs.toFixed(2)} Bs</span>
+                  <span className="block text-gray-850">${data.taxUsd.toFixed(2)}</span>
+                  {isManual && <span className="block text-[10px]">{data.taxBs.toFixed(2)} Bs</span>}
                 </div>
               </div>
               <div className="flex justify-between w-full max-w-[280px] text-gray-800 font-bold text-sm pt-2 border-t-2 border-gray-300">
                 <span>Total Factura:</span>
-                <div className="text-right">
-                  <span className="block text-purple-700">${data.totalUsd.toFixed(2)}</span>
-                  <span className="block text-xs text-purple-600">{data.totalBs.toFixed(2)} Bs</span>
+                <div className="text-right font-sans">
+                  <span className="block text-purple-700 text-base font-black">${data.totalUsd.toFixed(2)}</span>
+                  {isManual && <span className="block text-xs text-purple-600">{data.totalBs.toFixed(2)} Bs</span>}
                 </div>
               </div>
             </div>
+
+            {!isManual && (
+              <div className="bg-gray-100 border border-gray-200 p-3 rounded-md text-[10px] text-gray-700 text-center font-sans">
+                <strong>Pago en Bolívares (Bs.):</strong> Factura emitida en USD. Los pagos en moneda nacional serán calculados a la tasa oficial oficial (BCV) del día en que se efectúe la transacción.
+              </div>
+            )}
 
             {data.customFooter && (
               <div className="border border-gray-200 bg-gray-50/50 rounded-md p-3.5 mt-8 text-[10px] text-gray-600 flex items-center gap-2 font-sans italic">
@@ -214,7 +229,11 @@ function InvoicePrint() {
                 <div><span className="text-gray-400">EMISIÓN:</span> {data.issueDate}</div>
                 <div><span className="text-gray-400">VENCE:</span> {data.dueDate}</div>
                 <div><span className="text-gray-400 font-bold">MÉTODO:</span> <span className="font-bold text-black">{data.terms}</span></div>
-                <div><span className="text-gray-400 font-bold">TASA CAMBIO:</span> <span className="font-bold text-black">{data.exchangeRate.toFixed(2)} Bs</span></div>
+                {isManual ? (
+                  <div><span className="text-gray-400 font-bold">TASA CAMBIO:</span> <span className="font-bold text-black">{data.exchangeRate.toFixed(2)} Bs</span></div>
+                ) : (
+                  <div><span className="text-gray-400 font-bold">TASA:</span> <span className="font-bold text-black uppercase">TASA OFICIAL DEL DÍA</span></div>
+                )}
               </div>
             </div>
 
@@ -235,7 +254,9 @@ function InvoicePrint() {
                     <td className="py-3 text-right">${line.price.toFixed(2)}</td>
                     <td className="py-3 text-right font-medium">
                       <span className="block text-black">${(line.price * line.quantity).toFixed(2)}</span>
-                      <span className="block text-[9px] text-gray-400">{(line.price * line.quantity * data.exchangeRate).toFixed(2)} Bs</span>
+                      {isManual && (
+                        <span className="block text-[9px] text-gray-400">{(line.price * line.quantity * data.exchangeRate).toFixed(2)} Bs</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -245,17 +266,29 @@ function InvoicePrint() {
             <div className="flex flex-col items-end space-y-1.5 pt-4">
               <div className="flex justify-between w-full max-w-[240px]">
                 <span className="text-gray-400">SUBTOTAL</span>
-                <span className="text-black font-medium">${data.subtotalUsd.toFixed(2)} / {data.subtotalBs.toFixed(0)} Bs</span>
+                <span className="text-black font-medium">
+                  ${data.subtotalUsd.toFixed(2)} {isManual && `/ ${data.subtotalBs.toFixed(0)} Bs`}
+                </span>
               </div>
               <div className="flex justify-between w-full max-w-[240px]">
                 <span className="text-gray-400">IVA (16%)</span>
-                <span className="text-black font-medium">${data.taxUsd.toFixed(2)} / {data.taxBs.toFixed(0)} Bs</span>
+                <span className="text-black font-medium">
+                  ${data.taxUsd.toFixed(2)} {isManual && `/ ${data.taxBs.toFixed(0)} Bs`}
+                </span>
               </div>
               <div className="flex justify-between w-full max-w-[240px] font-bold border-t-2 border-black pt-3 text-black text-sm">
                 <span>TOTAL GENERAL</span>
-                <span>${data.totalUsd.toFixed(2)} / {data.totalBs.toFixed(0)} Bs</span>
+                <span>
+                  ${data.totalUsd.toFixed(2)} {isManual && `/ ${data.totalBs.toFixed(0)} Bs`}
+                </span>
               </div>
             </div>
+
+            {!isManual && (
+              <div className="border border-black p-3 text-[9px] text-black text-center font-sans tracking-wider">
+                * FACTURA EXPRESADA EN DÓLARES ($). LOS PAGOS EN BOLÍVARES SE CONVERTIRÁN A LA TASA OFICIAL OFICIAL VIGENTE AL MOMENTO DEL PAGO.
+              </div>
+            )}
 
             {data.customFooter && (
               <div className="border-t border-black pt-4 mt-8 text-[10px] text-gray-800 italic">
@@ -296,7 +329,7 @@ function InvoicePrint() {
                   </div>
                   <div className="flex justify-between text-[8px] text-gray-500">
                     <span>{line.quantity} x ${line.price.toFixed(2)}</span>
-                    <span>{(line.price * line.quantity * data.exchangeRate).toFixed(0)} Bs</span>
+                    {isManual && <span>{(line.price * line.quantity * data.exchangeRate).toFixed(0)} Bs</span>}
                   </div>
                 </div>
               ))}
@@ -305,17 +338,23 @@ function InvoicePrint() {
             <div className="flex flex-col items-end space-y-1">
               <div className="flex justify-between w-full">
                 <span>SUBTOTAL:</span>
-                <span>${data.subtotalUsd.toFixed(2)} / {data.subtotalBs.toFixed(0)} Bs</span>
+                <span>${data.subtotalUsd.toFixed(2)} {isManual && `/ ${data.subtotalBs.toFixed(0)} Bs`}</span>
               </div>
               <div className="flex justify-between w-full">
                 <span>IVA (16%):</span>
-                <span>${data.taxUsd.toFixed(2)} / {data.taxBs.toFixed(0)} Bs</span>
+                <span>${data.taxUsd.toFixed(2)} {isManual && `/ ${data.taxBs.toFixed(0)} Bs`}</span>
               </div>
               <div className="flex justify-between w-full font-bold text-[10px] border-t border-dashed border-gray-400 pt-2">
                 <span>TOTAL:</span>
-                <span>${data.totalUsd.toFixed(2)} / {data.totalBs.toFixed(0)} Bs</span>
+                <span>${data.totalUsd.toFixed(2)} {isManual && `/ ${data.totalBs.toFixed(0)} Bs`}</span>
               </div>
             </div>
+
+            {!isManual && (
+              <div className="text-center text-[7.5px] border border-dashed border-black p-1 text-black font-sans uppercase">
+                PAGOS EN Bs SE LIQUIDARÁN A LA TASA OFICIAL DEL DÍA DE PAGO.
+              </div>
+            )}
 
             {data.customFooter && (
               <div className="text-center py-2 text-[8px] text-black border-t border-dashed border-gray-400 my-2">
@@ -324,7 +363,11 @@ function InvoicePrint() {
             )}
 
             <div className="text-center border-t border-dashed border-gray-400 pt-3 text-[8px] space-y-1">
-              <p>TASA CAMBIO: {data.exchangeRate.toFixed(2)} Bs / USD</p>
+              {isManual ? (
+                <p>TASA CAMBIO: {data.exchangeRate.toFixed(2)} Bs / USD</p>
+              ) : (
+                <p>TASA: TASA OFICIAL DEL DÍA</p>
+              )}
               <p>COMPROBANTE SIN VALOR FISCAL</p>
               <p className="font-bold mt-1">GRACIAS POR SU PREFERENCIA</p>
             </div>

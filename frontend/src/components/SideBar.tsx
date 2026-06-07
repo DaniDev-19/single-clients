@@ -1,4 +1,4 @@
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 
 interface SideBarProps {
   isOpen?: boolean;
@@ -6,6 +6,7 @@ interface SideBarProps {
 }
 
 function SideBar({ isOpen = false, onClose }: SideBarProps) {
+  const navigate = useNavigate();
   const appTitle = import.meta.env.VITE_APP_TITLE || 'zymtaxis solutions';
   const appSlogan = import.meta.env.VITE_APP_SLOGAN || 'aprende creando y crea aprendiendo';
   const userName = import.meta.env.VITE_APP_USER_NAME || 'DaniDev';
@@ -20,41 +21,58 @@ function SideBar({ isOpen = false, onClose }: SideBarProps) {
 
   const sections = [
     {
-      title: 'General',
+      title: 'Panel & Ajustes',
       links: [
         { name: 'Dashboard', to: '/' },
-        { name: 'Reportes', to: '/reportes' },
+        { name: 'Ajustes del Sistema', to: '/configuracion' },
+        { name: 'Roles y Permisos', to: '/roles-permisos' },
       ],
     },
     {
-      title: 'Operaciones Ventas',
+      title: 'Ventas & Facturación',
       links: [
         { name: 'Venta Directa (POS)', to: '/pos' },
         { name: 'Cierre de Caja', to: '/cierre-caja' },
-        { name: 'Historial Ventas', to: '/ventas' },
+        { name: 'Historial de Ventas', to: '/ventas' },
+        { name: 'Pedidos Web E-Commerce', to: '/pedidos-ecommerce' },
+        { name: 'Facturador Manual', to: '/facturas' },
+        { name: 'Cotizador Comercial', to: '/cotizador' },
       ],
     },
     {
-      title: 'Gestión Inventario',
+      title: 'Finanzas & Nómina',
       links: [
+        { name: 'Balance General', to: '/finanzas' },
+        { name: 'Control de Egresos', to: '/egresos' },
+        { name: 'Nómina y Empleados', to: '/nomina' },
+        { name: 'Métodos de Pago', to: '/metodos-pago' },
+        { name: 'Créditos / Fiados', to: '/creditos' },
+        { name: 'Reportes Financieros', to: '/reportes' },
+      ],
+    },
+    {
+      title: 'Inventario & Sorteos',
+      links: [
+        { name: 'Inventario / Alertas', to: '/proyectos' },
         { name: 'Clientes', to: '/clientes' },
-        { name: 'Inventario / Catálogo', to: '/proyectos' },
         { name: 'Pedidos de Stock', to: '/pedidos' },
+        { name: 'Ofertas y Combos', to: '/promociones' },
+        { name: 'Dinámica de Rifas', to: '/rifas' },
       ],
     },
     {
-      title: 'Administración',
+      title: 'Soporte & Utilidades',
       links: [
-        { name: 'Facturador', to: '/facturas' },
-        { name: 'Finanzas', to: '/finanzas' },
-        { name: 'Soporte Post-Venta', to: '/post-venta' },
-        { name: 'Ajustes del Sistema', to: '/configuracion' },
+        { name: 'Órdenes de Servicio', to: '/ordenes-servicio' },
+        { name: 'Tickets Post-Venta', to: '/post-venta' },
+        { name: 'Notas y Credenciales', to: '/notas-credenciales' },
+        { name: 'Ayuda & Manuales', to: '/ayuda' },
       ],
     },
   ];
 
   const sidebarContent = (
-    <div className="flex flex-col h-full justify-between">
+    <div className="flex flex-col h-full justify-between font-sans">
       <div className="flex flex-col min-h-0 flex-1">
         <div className="flex items-center gap-2.5 px-4 py-3 border-b border-border-dark bg-black/20">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-purple-600/10 border border-purple-500/20 text-purple-400">
@@ -124,6 +142,10 @@ function SideBar({ isOpen = false, onClose }: SideBarProps) {
             </Link>
             <button
               type="button"
+              onClick={() => {
+                if (onClose) onClose();
+                navigate('/login');
+              }}
               className="p-1 rounded text-gray-500 hover:bg-bg-panel hover:text-red-400 transition cursor-pointer"
               title="Cerrar Sesión"
               aria-label="Cerrar Sesión"

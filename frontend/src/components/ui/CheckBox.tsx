@@ -18,7 +18,7 @@ interface ToggleProps {
 
 const variantClasses: Record<ToggleVariant, { track: string; thumb: string; ring: string; control: string }> = {
   base: {
-    track: 'bg-gray-800 peer-checked:bg-gray-600',
+    track: 'bg-gray-800 peer-checked:bg-gray-650',
     thumb: 'bg-white',
     ring: 'focus:ring-gray-700',
     control: 'text-gray-400',
@@ -26,7 +26,7 @@ const variantClasses: Record<ToggleVariant, { track: string; thumb: string; ring
   primary: {
     track: 'bg-gray-800 peer-checked:bg-purple-600',
     thumb: 'bg-white',
-    ring: 'focus:ring-purple-600',
+    ring: 'focus:ring-purple-650',
     control: 'text-purple-500',
   },
   success: {
@@ -38,13 +38,13 @@ const variantClasses: Record<ToggleVariant, { track: string; thumb: string; ring
   danger: {
     track: 'bg-gray-800 peer-checked:bg-red-600',
     thumb: 'bg-white',
-    ring: 'focus:ring-red-600',
+    ring: 'focus:ring-red-650',
     control: 'text-red-500',
   },
   ghost: {
     track: 'bg-gray-900 peer-checked:bg-purple-950/40',
     thumb: 'bg-white',
-    ring: 'focus:ring-purple-600',
+    ring: 'focus:ring-purple-650',
     control: 'text-purple-400',
   },
 };
@@ -61,7 +61,6 @@ function Toggle({
   disabled = false,
   className = '',
 }: ToggleProps) {
-  const inputId = name ? `${name}-${value ?? 'toggle'}` : undefined;
   const currentVariant = variantClasses[variant];
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -69,10 +68,9 @@ function Toggle({
   };
 
   return (
-    <div className={`flex items-start gap-3 ${className}`}>
-      <div className="mt-0.5">
+    <label className={`flex items-start gap-3 select-none cursor-pointer ${disabled ? 'opacity-50 pointer-events-none' : ''} ${className}`}>
+      <div className="relative mt-0.5">
         <input
-          id={inputId}
           type={type}
           name={name}
           value={value}
@@ -82,22 +80,20 @@ function Toggle({
           className={
             type === 'checkbox'
               ? 'peer sr-only'
-              : `h-4 w-4 rounded-full border border-border-dark bg-bg-card text-purple-600 focus:ring-2 ${currentVariant.ring} ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`
+              : `h-4 w-4 rounded-full border border-border-dark bg-bg-card text-purple-600 focus:ring-2 ${currentVariant.ring} cursor-pointer`
           }
         />
 
         {type === 'checkbox' && (
           <span
             className={`
-              relative inline-flex h-6 w-11 cursor-pointer items-center rounded-full transition
+              relative inline-flex h-5 w-10 items-center rounded-full transition-colors duration-250
               ${currentVariant.track}
-              ${disabled ? 'cursor-not-allowed opacity-40' : ''}
             `}
           >
             <span
               className={`
-                inline-block h-5 w-5 transform rounded-full transition
-                ${currentVariant.thumb}
+                inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-250
                 ${checked ? 'translate-x-5' : 'translate-x-0.5'}
               `}
             />
@@ -107,21 +103,18 @@ function Toggle({
 
       <div className="flex flex-col">
         {label && (
-          <label
-            htmlFor={inputId}
-            className={`text-sm font-medium ${disabled ? 'text-gray-600' : 'text-gray-200'} cursor-pointer`}
-          >
+          <span className="text-xs font-semibold text-gray-300">
             {label}
-          </label>
+          </span>
         )}
 
         {description && (
-          <span className={`text-xs ${disabled ? 'text-gray-700' : 'text-gray-400'}`}>
+          <span className="text-[10px] text-gray-500 mt-0.5 leading-tight">
             {description}
           </span>
         )}
       </div>
-    </div>
+    </label>
   );
 }
 

@@ -6,6 +6,10 @@ function Home() {
     { title: 'Clientes Activos', value: '154', change: '+8.2%', variant: 'success' as const, badge: 'Activo' },
     { title: 'Tickets Pendientes', value: '8', change: '-15.0%', variant: 'warning' as const, badge: 'Urgente' },
     { title: 'Inventario de SKUs', value: '1,240', change: 'Estable', variant: 'soft' as const, badge: 'Stock OK' },
+    { title: 'Margen de Ganancia', value: '68.4%', change: '+1.5%', variant: 'success' as const, badge: 'Óptimo' },
+    { title: 'Crédito Otorgado (Fiados)', value: '$8,420.00', change: 'En Cobro', variant: 'warning' as const, badge: 'Por Cobrar' },
+    { title: 'Egresos del Mes', value: '$3,150.00', change: '-4.2%', variant: 'accent' as const, badge: 'Controlado' },
+    { title: 'Tasa del Día (BCV)', value: '530.00 Bs', change: 'Estándar', variant: 'soft' as const, badge: 'Tasa Oficial' },
   ];
 
   const chartData = [
@@ -31,7 +35,7 @@ function Home() {
         <p className="mt-1 text-xs text-gray-400">Resumen y métricas de rendimiento general del sistema.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {kpis.map((kpi) => (
           <Cards
             key={kpi.title}

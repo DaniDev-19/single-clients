@@ -20,7 +20,6 @@ function Profile() {
 
   const [appTitle, setAppTitle] = useState('zymtaxis solutions');
   const [appSlogan, setAppSlogan] = useState('aprende creando y crea aprendiendo');
-  const [stockAlertLevel, setStockAlertLevel] = useState('10');
 
   const handleSaveConfig = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,21 +105,12 @@ function Profile() {
 
           <section className="rounded-lg border border-border-dark bg-bg-card p-4 sm:p-6 shadow-md space-y-4">
             <h2 className="text-xs font-bold uppercase tracking-wider text-white border-b border-border-dark/60 pb-3">Parámetros del Sistema (Marca Blanca)</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Inputs
-                label="Nombre del Negocio (Título)"
-                value={appTitle}
-                onChange={setAppTitle}
-                required
-              />
-              <Inputs
-                label="Alerta de Stock Bajo (Unidades)"
-                type="number"
-                value={stockAlertLevel}
-                onChange={setStockAlertLevel}
-                required
-              />
-            </div>
+            <Inputs
+              label="Nombre del Negocio (Título)"
+              value={appTitle}
+              onChange={setAppTitle}
+              required
+            />
             <Inputs
               label="Lema Comercial (Pie de Página)"
               value={appSlogan}

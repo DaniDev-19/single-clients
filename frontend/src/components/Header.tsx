@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Modal } from './Modal';
+import { useLocation, Link } from 'react-router-dom';
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -8,7 +7,6 @@ interface HeaderProps {
 
 function Header({ onToggleSidebar }: HeaderProps) {
   const location = useLocation();
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   const getPageTitle = (pathname: string) => {
@@ -129,44 +127,16 @@ function Header({ onToggleSidebar }: HeaderProps) {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsHelpOpen(true)}
+        <Link
+          to="/ayuda"
           className="p-1.5 rounded-full border border-border-dark hover:border-purple-500/40 text-gray-400 hover:text-white hover:bg-bg-panel transition cursor-pointer"
           title="Manual de Usuario"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-        </button>
+        </Link>
       </div>
-
-      <Modal
-        isOpen={isHelpOpen}
-        onClose={() => setIsHelpOpen(false)}
-        title="Guía Rápida de Módulos"
-        showActions={true}
-        actions={[{ label: 'Entendido', onClick: () => setIsHelpOpen(false), variant: 'primary' }]}
-      >
-        <div className="space-y-3.5 text-xs text-gray-300">
-          <div>
-            <h4 className="font-bold text-white uppercase tracking-wider text-[10px] mb-1">1. Terminal POS (Ventas Rápidas)</h4>
-            <p className="leading-relaxed">Diseñado para facturar víveres, alimentos o servicios instantáneamente. Selecciona los productos del catálogo paginado, ajusta las cantidades en el carrito de compras, asocia un cliente y presiona Cobrar.</p>
-          </div>
-          <div>
-            <h4 className="font-bold text-white uppercase tracking-wider text-[10px] mb-1">2. Arqueo y Cierre de Caja</h4>
-            <p className="leading-relaxed">Permite conciliar el efectivo físico con los registros contables del turno. Ingresa la cantidad real contada para ver si tu balance es correcto, reporta diferencias y registra observaciones del cierre.</p>
-          </div>
-          <div>
-            <h4 className="font-bold text-white uppercase tracking-wider text-[10px] mb-1">3. Facturador Profesional</h4>
-            <p className="leading-relaxed">Formulario para crear y exportar comprobantes fiscales en PDF, XML o enviarlos por correo electrónico. Edita los campos en tiempo real y previsualiza el borrador listo para impresión.</p>
-          </div>
-          <div>
-            <h4 className="font-bold text-white uppercase tracking-wider text-[10px] mb-1">4. Soporte Post-Venta</h4>
-            <p className="leading-relaxed">Cola de tickets técnicos y reclamos de clientes. Filtra por estado de resolución o nivel de prioridad para agilizar la gestión de incidencias corporativas.</p>
-          </div>
-        </div>
-      </Modal>
     </header>
   );
 }

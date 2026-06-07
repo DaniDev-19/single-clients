@@ -16,6 +16,7 @@ interface SaleTransaction {
   amount: number;
   date: string;
   status: 'paid' | 'pending' | 'refunded';
+  paymentMethod?: string;
 }
 
 function Sales() {
@@ -23,11 +24,11 @@ function Sales() {
   const { showLoading, hideLoading } = useLoading();
 
   const [sales, setSales] = useState<SaleTransaction[]>([
-    { id: 1, txId: 'TX-1092', clientName: 'John Doe', productName: 'Servidor VPS Linux Pro', amount: 199.0, date: '2026-06-05', status: 'paid' },
-    { id: 2, txId: 'TX-1093', clientName: 'Jane Smith', productName: 'Licencia SaaS Corporativa', amount: 49.0, date: '2026-06-04', status: 'paid' },
-    { id: 3, txId: 'TX-1094', clientName: 'Carlos Ruiz', productName: 'Consultoría Especializada TI', amount: 1200.0, date: '2026-06-03', status: 'pending' },
-    { id: 4, txId: 'TX-1095', clientName: 'Ana García', productName: 'Soporte Cloud 24/7 Anual', amount: 599.0, date: '2026-06-02', status: 'paid' },
-    { id: 5, txId: 'TX-1096', clientName: 'Laura Pérez', productName: 'Firewall Hardware Enterprise', amount: 2499.0, date: '2026-05-28', status: 'refunded' },
+    { id: 1, txId: 'TX-1092', clientName: 'John Doe', productName: 'Servidor VPS Linux Pro', amount: 199.0, date: '2026-06-05', status: 'paid', paymentMethod: 'Efectivo Divisas' },
+    { id: 2, txId: 'TX-1093', clientName: 'Jane Smith', productName: 'Licencia SaaS Corporativa', amount: 49.0, date: '2026-06-04', status: 'paid', paymentMethod: 'Transferencia Bancaria' },
+    { id: 3, txId: 'TX-1094', clientName: 'Carlos Ruiz', productName: 'Consultoría Especializada TI', amount: 1200.0, date: '2026-06-03', status: 'pending', paymentMethod: 'Pago Móvil' },
+    { id: 4, txId: 'TX-1095', clientName: 'Ana García', productName: 'Soporte Cloud 24/7 Anual', amount: 599.0, date: '2026-06-02', status: 'paid', paymentMethod: 'Efectivo BS' },
+    { id: 5, txId: 'TX-1096', clientName: 'Laura Pérez', productName: 'Firewall Hardware Enterprise', amount: 2499.0, date: '2026-05-28', status: 'refunded', paymentMethod: 'Cashea' },
   ]);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,18 +36,21 @@ function Sales() {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isRefundOpen, setIsRefundOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState<SaleTransaction | null>(null);
 
   const [clientInput, setClientInput] = useState('');
   const [productInput, setProductInput] = useState('');
   const [amountInput, setAmountInput] = useState('');
   const [statusInput, setStatusInput] = useState('paid');
+  const [methodInput, setMethodInput] = useState('Efectivo Divisas');
 
   const handleOpenAdd = () => {
     setClientInput('');
     setProductInput('');
     setAmountInput('');
     setStatusInput('paid');
+    setMethodInput('Efectivo Divisas');
     setIsAddOpen(true);
   };
 
@@ -71,6 +75,7 @@ function Sales() {
         amount: amountVal,
         date: new Date().toISOString().split('T')[0],
         status: statusInput as any,
+        paymentMethod: methodInput,
       };
       setSales((prev) => [newSale, ...prev]);
       hideLoading();
@@ -139,6 +144,21 @@ function Sales() {
     status: getStatusBadge(sale.status),
     acciones: (
       <div className="flex items-center gap-1.5 justify-start">
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedSale(sale);
+            setIsDetailOpen(true);
+          }}
+          className="p-1 rounded border border-border-dark bg-bg-card text-gray-400 hover:text-white hover:border-purple-500/50 transition cursor-pointer"
+          title="Ver Detalle Transacción (ID)"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        </button>
+
         {sale.status !== 'refunded' && (
           <Buttons
             variant="danger"
@@ -239,15 +259,24 @@ function Sales() {
             placeholder="Ej. Servidor VPS Linux Pro"
             required
           />
-          <Inputs
-            label="Monto Total ($)"
-            type="number"
-            step="0.01"
-            value={amountInput}
-            onChange={setAmountInput}
-            placeholder="Ej. 199.00"
-            required
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <Inputs
+              label="Monto Total ($)"
+              type="number"
+              step="0.01"
+              value={amountInput}
+              onChange={setAmountInput}
+              placeholder="Ej. 199.00"
+              required
+            />
+            <Selects
+              label="Método de Pago"
+              value={methodInput}
+              onChange={setMethodInput}
+              options={['Efectivo Divisas', 'Efectivo BS', 'Transferencia Bancaria', 'Pago Móvil', 'Cashea']}
+              placeholder="Seleccionar método"
+            />
+          </div>
           <Selects
             label="Estado del Pago"
             value={statusInput}
@@ -272,6 +301,35 @@ function Sales() {
         <p className="text-sm">
           ¿Está seguro que desea reembolsar la transacción <strong className="text-white">{selectedSale?.txId}</strong> del cliente <strong className="text-white">{selectedSale?.clientName}</strong>? Esto marcará el pago como anulado.
         </p>
+      </Modal>
+
+      <Modal
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        title="Ficha Detallada de Venta (ID)"
+        showActions={true}
+        actions={[{ label: 'Cerrar', onClick: () => setIsDetailOpen(false), variant: 'secondary' }]}
+      >
+        {selectedSale && (
+          <div className="space-y-4 text-xs">
+            <div className="flex justify-between items-center border-b border-border-dark pb-3">
+              <div>
+                <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider block">{selectedSale.txId}</span>
+                <h4 className="text-sm font-bold text-white mt-0.5">{selectedSale.clientName}</h4>
+              </div>
+              {getStatusBadge(selectedSale.status)}
+            </div>
+
+            <div className="space-y-2.5">
+              <div className="flex justify-between"><span className="text-gray-500 font-medium">Producto / Servicio:</span><span className="text-white font-semibold">{selectedSale.productName}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 font-medium">Fecha Facturación:</span><span className="text-gray-300">{selectedSale.date}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 font-medium">Método de Pago:</span><span className="text-purple-400 font-bold">{selectedSale.paymentMethod || 'Efectivo Divisas'}</span></div>
+              <div className="flex justify-between border-t border-border-dark/60 pt-2"><span className="text-gray-500 font-medium">Subtotal:</span><span className="text-white font-semibold">${(selectedSale.amount / 1.16).toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 font-medium">Impuesto IVA (16%):</span><span className="text-white font-semibold">${(selectedSale.amount - (selectedSale.amount / 1.16)).toFixed(2)}</span></div>
+              <div className="flex justify-between border-t border-border-dark/60 pt-2 text-sm"><span className="text-gray-500 font-bold">Total Factura:</span><span className="text-purple-400 font-black">${selectedSale.amount.toFixed(2)}</span></div>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

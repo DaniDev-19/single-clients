@@ -30,6 +30,7 @@ function Facturador() {
   const [issueDate, setIssueDate] = useState('2026-06-07');
   const [dueDate, setDueDate] = useState('2026-06-22');
   const [terms, setTerms] = useState('Efectivo Divisa ($)');
+  const [rateMode, setRateMode] = useState<'manual' | 'daily'>('manual');
   const [exchangeRate, setExchangeRate] = useState(530.00);
   const [formatStyle, setFormatStyle] = useState<'classic' | 'minimalist' | 'ticket'>('classic');
   const [customFooter, setCustomFooter] = useState('Garantía de 30 días en piezas y soporte técnico.');
@@ -97,7 +98,8 @@ function Facturador() {
         issueDate,
         dueDate,
         terms,
-        exchangeRate,
+        rateMode,
+        exchangeRate: rateMode === 'daily' ? 0 : exchangeRate,
         formatStyle,
         customFooter,
         lines,
@@ -201,16 +203,12 @@ function Facturador() {
                   onChange={setInvoiceId}
                   required
                 />
-                <Inputs
-                  label="Tasa de Cambio (Bs / $)"
-                  type="number"
-                  step="0.01"
-                  value={exchangeRate.toString()}
-                  onChange={(val) => {
-                    const rate = parseFloat(val);
-                    setExchangeRate(isNaN(rate) ? 1 : rate);
-                  }}
-                  required
+                <Selects
+                  label="Modo de Tasa"
+                  value={rateMode}
+                  onChange={(val) => setRateMode(val as any)}
+                  options={['manual', 'daily']}
+                  placeholder="Seleccione modo de tasa"
                 />
                 <Selects
                   label="Condiciones / Pago"
@@ -220,21 +218,45 @@ function Facturador() {
                   placeholder="Método de pago"
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Inputs
-                  label="Fecha Emisión"
-                  type="date"
-                  value={issueDate}
-                  onChange={setIssueDate}
-                  required
-                />
-                <Inputs
-                  label="Fecha Vencimiento"
-                  type="date"
-                  value={dueDate}
-                  onChange={setDueDate}
-                  required
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-1">
+                  {rateMode === 'manual' ? (
+                    <Inputs
+                      label="Tasa de Cambio (Bs / $)"
+                      type="number"
+                      step="0.01"
+                      value={exchangeRate.toString()}
+                      onChange={(val) => {
+                        const rate = parseFloat(val);
+                        setExchangeRate(isNaN(rate) ? 1 : rate);
+                      }}
+                      required
+                    />
+                  ) : (
+                    <div className="flex flex-col justify-end h-full pb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">Tasa Aplicada</span>
+                      <span className="text-xs text-purple-400 font-bold uppercase">Tasa del día (BCV)</span>
+                    </div>
+                  )}
+                </div>
+                <div className="sm:col-span-1">
+                  <Inputs
+                    label="Fecha Emisión"
+                    type="date"
+                    value={issueDate}
+                    onChange={setIssueDate}
+                    required
+                  />
+                </div>
+                <div className="sm:col-span-1">
+                  <Inputs
+                    label="Fecha Vencimiento"
+                    type="date"
+                    value={dueDate}
+                    onChange={setDueDate}
+                    required
+                  />
+                </div>
               </div>
               <Inputs
                 label="Nota del Pie de Página / Garantía (Opcional)"
@@ -343,7 +365,7 @@ function Facturador() {
         <section className="lg:col-span-5 rounded-lg border border-border-dark bg-bg-card p-4 sm:p-6 shadow-md flex flex-col">
           <h2 className="text-xs font-bold uppercase tracking-wider text-white border-b border-border-dark/60 pb-3 mb-4">Borrador en Tiempo Real</h2>
           
-          <div className="border border-border-dark bg-white text-black p-4 rounded-md shadow-inner h-[520px] overflow-y-auto custom-scrollbar flex flex-col justify-between">
+          <div className="border border-border-dark bg-white text-black p-4 rounded-md shadow-inner h-[520px] overflow-y-auto custom-scrollbar flex flex-col justify-between text-xs">
             {formatStyle === 'classic' && (
               <div className="font-serif text-[10px] space-y-4">
                 <div className="flex justify-between items-start border-b border-gray-100 pb-3">
@@ -368,7 +390,9 @@ function Facturador() {
                     <div className="flex justify-between sm:justify-end gap-2"><span className="text-gray-400">Emisión:</span><span className="text-gray-800">{issueDate}</span></div>
                     <div className="flex justify-between sm:justify-end gap-2"><span className="text-gray-400">Vence:</span><span className="text-gray-800">{dueDate}</span></div>
                     <div className="flex justify-between sm:justify-end gap-2"><span className="text-gray-400">Método:</span><span className="text-purple-700 font-bold">{terms}</span></div>
-                    <div className="flex justify-between sm:justify-end gap-2"><span className="text-gray-400">Tasa:</span><span className="text-purple-700 font-bold">{exchangeRate.toFixed(2)} Bs</span></div>
+                    {rateMode === 'manual' && (
+                      <div className="flex justify-between sm:justify-end gap-2"><span className="text-gray-400">Tasa:</span><span className="text-purple-700 font-bold">{exchangeRate.toFixed(2)} Bs</span></div>
+                    )}
                   </div>
                 </div>
                 <table className="w-full text-left font-sans text-[8px]">
@@ -377,7 +401,7 @@ function Facturador() {
                       <th className="pb-1.5">Descripción</th>
                       <th className="pb-1.5 text-right w-10">Cant.</th>
                       <th className="pb-1.5 text-right w-16">Precio ($)</th>
-                      <th className="pb-1.5 text-right w-20">Total ($ / Bs)</th>
+                      <th className="pb-1.5 text-right w-20">Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-gray-700">
@@ -388,7 +412,9 @@ function Facturador() {
                         <td className="py-2 text-right">${line.price.toFixed(2)}</td>
                         <td className="py-2 text-right">
                           <div className="font-bold text-gray-800">${(line.price * line.quantity).toFixed(2)}</div>
-                          <div className="text-[7px] text-gray-500">{(line.price * line.quantity * exchangeRate).toFixed(2)} Bs</div>
+                          {rateMode === 'manual' && (
+                            <div className="text-[7px] text-gray-500">{(line.price * line.quantity * exchangeRate).toFixed(2)} Bs</div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -399,24 +425,29 @@ function Facturador() {
                     <span>Subtotal:</span>
                     <div className="text-right">
                       <span className="block">${subtotalUsd.toFixed(2)}</span>
-                      <span className="block text-[7px]">{subtotalBs.toFixed(2)} Bs</span>
+                      {rateMode === 'manual' && <span className="block text-[7px]">{subtotalBs.toFixed(2)} Bs</span>}
                     </div>
                   </div>
                   <div className="flex justify-between w-full max-w-[180px] text-gray-500">
                     <span>IVA (16%):</span>
                     <div className="text-right">
                       <span className="block">${taxUsd.toFixed(2)}</span>
-                      <span className="block text-[7px]">{taxBs.toFixed(2)} Bs</span>
+                      {rateMode === 'manual' && <span className="block text-[7px]">{taxBs.toFixed(2)} Bs</span>}
                     </div>
                   </div>
                   <div className="flex justify-between w-full max-w-[180px] text-gray-800 font-bold text-[10px] pt-1.5 border-t border-gray-100">
                     <span>Total Factura:</span>
                     <div className="text-right">
                       <span className="block text-purple-700">${totalUsd.toFixed(2)}</span>
-                      <span className="block text-[8px] text-purple-600">{totalBs.toFixed(2)} Bs</span>
+                      {rateMode === 'manual' && <span className="block text-[8px] text-purple-600">{totalBs.toFixed(2)} Bs</span>}
                     </div>
                   </div>
                 </div>
+                {rateMode === 'daily' && (
+                  <div className="bg-purple-50 border border-purple-200 p-2 rounded text-[8px] text-purple-700 text-center font-sans">
+                    <strong>Tasa del día:</strong> El total en Bolívares será pagadero a la tasa oficial oficial del día de pago.
+                  </div>
+                )}
                 {customFooter && (
                   <div className="border-t border-gray-100 pt-3 text-[7px] text-center text-gray-500 italic flex items-center justify-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -446,7 +477,7 @@ function Facturador() {
                     <div><span className="text-gray-400 font-bold">FACTURA:</span> <span className="font-bold text-black">{invoiceId}</span></div>
                     <div><span className="text-gray-400">EMISIÓN:</span> {issueDate}</div>
                     <div><span className="text-gray-400">MÉTODO:</span> {terms}</div>
-                    <div><span className="text-gray-400">TASA:</span> {exchangeRate.toFixed(2)} Bs</div>
+                    {rateMode === 'manual' && <div><span className="text-gray-400 font-bold">TASA:</span> {exchangeRate.toFixed(2)} Bs</div>}
                   </div>
                 </div>
                 <table className="w-full text-left text-[8px]">
@@ -466,7 +497,9 @@ function Facturador() {
                         <td className="py-2 text-right">${line.price.toFixed(2)}</td>
                         <td className="py-2 text-right font-medium">
                           <span className="block text-black">${(line.price * line.quantity).toFixed(2)}</span>
-                          <span className="block text-[7px] text-gray-400">{(line.price * line.quantity * exchangeRate).toFixed(2)} Bs</span>
+                          {rateMode === 'manual' && (
+                            <span className="block text-[7px] text-gray-400">{(line.price * line.quantity * exchangeRate).toFixed(2)} Bs</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -475,17 +508,28 @@ function Facturador() {
                 <div className="flex flex-col items-end space-y-1 pt-3">
                   <div className="flex justify-between w-full max-w-[160px]">
                     <span className="text-gray-400">SUBTOTAL</span>
-                    <span className="text-black">${subtotalUsd.toFixed(2)} / {subtotalBs.toFixed(0)} Bs</span>
+                    <span className="text-black">
+                      ${subtotalUsd.toFixed(2)} {rateMode === 'manual' && `/ ${subtotalBs.toFixed(0)} Bs`}
+                    </span>
                   </div>
                   <div className="flex justify-between w-full max-w-[160px]">
                     <span className="text-gray-400">IVA (16%)</span>
-                    <span className="text-black">${taxUsd.toFixed(2)} / {taxBs.toFixed(0)} Bs</span>
+                    <span className="text-black">
+                      ${taxUsd.toFixed(2)} {rateMode === 'manual' && `/ ${taxBs.toFixed(0)} Bs`}
+                    </span>
                   </div>
                   <div className="flex justify-between w-full max-w-[160px] font-bold border-t border-black pt-2 text-black text-[10px]">
                     <span>TOTAL</span>
-                    <span className="text-black">${totalUsd.toFixed(2)} / {totalBs.toFixed(0)} Bs</span>
+                    <span className="text-black">
+                      ${totalUsd.toFixed(2)} {rateMode === 'manual' && `/ ${totalBs.toFixed(0)} Bs`}
+                    </span>
                   </div>
                 </div>
+                {rateMode === 'daily' && (
+                  <div className="border border-black p-2 text-[7.5px] text-black text-center font-sans tracking-wide">
+                    * FACTURA PAGADERA EN BOLÍVARES A LA TASA OFICIAL DEL DÍA DE PAGO.
+                  </div>
+                )}
                 {customFooter && (
                   <div className="border-t border-gray-200 pt-3 text-[7px] text-gray-500 font-medium">
                     * {customFooter}
@@ -522,7 +566,7 @@ function Facturador() {
                       </div>
                       <div className="flex justify-between text-[7px] text-gray-500">
                         <span>{line.quantity} x ${line.price.toFixed(2)}</span>
-                        <span>{(line.price * line.quantity * exchangeRate).toFixed(0)} Bs</span>
+                        {rateMode === 'manual' && <span>{(line.price * line.quantity * exchangeRate).toFixed(0)} Bs</span>}
                       </div>
                     </div>
                   ))}
@@ -530,25 +574,33 @@ function Facturador() {
                 <div className="flex flex-col items-end space-y-0.5">
                   <div className="flex justify-between w-full">
                     <span>SUBTOTAL:</span>
-                    <span>${subtotalUsd.toFixed(2)} / {subtotalBs.toFixed(0)} Bs</span>
+                    <span>${subtotalUsd.toFixed(2)} {rateMode === 'manual' && `/ ${subtotalBs.toFixed(0)} Bs`}</span>
                   </div>
                   <div className="flex justify-between w-full">
                     <span>IVA (16%):</span>
-                    <span>${taxUsd.toFixed(2)} / {taxBs.toFixed(0)} Bs</span>
+                    <span>${taxUsd.toFixed(2)} {rateMode === 'manual' && `/ ${taxBs.toFixed(0)} Bs`}</span>
                   </div>
                   <div className="flex justify-between w-full font-bold text-[9px] border-t border-dashed border-gray-400 pt-1.5">
                     <span>TOTAL:</span>
-                    <span>${totalUsd.toFixed(2)} / {totalBs.toFixed(0)} Bs</span>
+                    <span>${totalUsd.toFixed(2)} {rateMode === 'manual' && `/ ${totalBs.toFixed(0)} Bs`}</span>
                   </div>
                 </div>
+                {rateMode === 'daily' ? (
+                  <div className="text-center text-[7px] border border-dashed border-black p-1 text-black font-sans uppercase">
+                    PAGOS EN Bs SE CALCULARÁN A LA TASA OFICIAL DEL DÍA
+                  </div>
+                ) : (
+                  <div className="text-center border-t border-dashed border-gray-400 pt-3 text-[7px]">
+                    <p>TASA DE CAMBIO: {exchangeRate.toFixed(2)} Bs / USD</p>
+                  </div>
+                )}
                 {customFooter && (
                   <div className="text-center py-1 text-[7px] text-gray-600 border-t border-dashed border-gray-300">
                     {customFooter}
                   </div>
                 )}
-                <div className="text-center border-t border-dashed border-gray-400 pt-3 text-[7px]">
-                  <p>TASA DE CAMBIO: {exchangeRate.toFixed(2)} Bs / USD</p>
-                  <p className="mt-1">GRACIAS POR SU COMPRA</p>
+                <div className="text-center text-[7px] pt-1">
+                  <p>GRACIAS POR SU COMPRA</p>
                 </div>
               </div>
             )}
