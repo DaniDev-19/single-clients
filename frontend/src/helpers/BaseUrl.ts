@@ -1,0 +1,1 @@
+export const BaseUrl = import.meta.env.BaseUrl || 'http://localhost:4000/client/api'
